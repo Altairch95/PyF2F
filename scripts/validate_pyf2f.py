@@ -13,32 +13,33 @@ import sys
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
-from statsmodels.stats.multitest import multipletests
 
 # Load Data for the C-ter
 path_c = "../Cell_PyF2F_comparison/C_terminal.csv"
 path_n = "../Cell_PyF2F_comparison/N_terminal.csv"
 
-c_data = pd.read_csv(path_c, usecols=["mu_cell", "serr_mu_cell", "mu_py", "serr_mu_py"])
-n_data = pd.read_csv(path_n, usecols=["mu_cell", "serr_mu_cell", "mu_py", "serr_mu_py"])
+c_data_observed = pd.read_csv(path_c, usecols=["mu_py", "serr_mu_py"]).sort_values(['mu_py'])
+n_data_observed = pd.read_csv(path_n, usecols=["mu_py", "serr_mu_py"]).sort_values(['mu_py'])
+c_data_expected = pd.read_csv(path_c, usecols=["mu_cell", "serr_mu_cell"]).sort_values(['mu_cell'])
+n_data_expected = pd.read_csv(path_n, usecols=["mu_cell", "serr_mu_cell"]).sort_values(['mu_cell'])
 
 # Compare all the values (C & N ter)
 # Observed values (PyF2F-Ruler distances) and Expected values (published dataset)
-observed_values = np.concatenate((c_data.mu_py.to_numpy(), n_data.mu_py.to_numpy()), axis=0)
-expected_values = np.concatenate((c_data.mu_cell.to_numpy(), n_data.mu_cell.to_numpy()), axis=0)
-test = np.array([observed_values, expected_values]).T
+observed_values = np.concatenate((c_data_observed.mu_py.to_numpy(), n_data_observed.mu_py.to_numpy()), axis=0)
+expected_values = np.concatenate((c_data_expected.mu_cell.to_numpy(), n_data_expected.mu_cell.to_numpy()), axis=0)
 
-# Chis-square test: sum((O - E)^2 / E)
-chi_square_stat, p_value = stats.chisquare(test)
+# Getting Frequencies from observed and expected values
+# Binning data from min val (~13 nm) and max val (~36 nm)
+obs_count, obs_bins = np.histogram(observed_values, bins=[13, 17, 21, 25, 29, 36])
+exp_count, exp_bins = np.histogram(expected_values, bins=[13, 17, 21, 25, 29, 36])
+chi_square_stat, p_value = stats.chisquare(obs_count, exp_count)
 
-# Adjust p-value to avoid multiple comparisons bias
-reject_list, corrected_p_vals = multipletests(p_value, method='bonferroni')[:2]
+# Print Results
+print(f"Chi-square test results in:\n"
+      f"\n\tChi-square stat: {chi_square_stat}\n"
+      f"\tp-value: {p_value}\n\n")
 
-# Print Chi-square test statistic and p value
-print(f'\n\nChi-square test statistic is {str(chi_square_stat)}\n')
-print("\noriginal p-value\tcorrected p-value\treject?")
-for p_val, corr_p_val, reject in zip(p_value, corrected_p_vals, reject_list):
-    print(f'\t{str(p_value)}\t{str(corrected_p_vals)}\n')
-print("\nDone!\n\n")
+print("\nDone!\n")
 sys.exit(0)
+
 # END

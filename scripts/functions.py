@@ -137,10 +137,10 @@ def plot_distance_distribution(figures_dir, distances_array, save_name):
                  "mean = {} nm; stdev = {} nm\n".format(np.around(np.mean(distances_array), 2),
                                                         np.around(np.std(distances_array), 2),
                                                         fontweight="bold", size=35))
-    sns.histplot(data=distances_array, kde=True, ax=ax, fill=True)
+    sns.histplot(data=distances_array, kde=True, ax=ax, fill=True, stat="density")
     ax.axvline(x=np.mean(distances_array), color='red', ls='--', lw=2.5, alpha=0.1)
     ax.set_xlabel("$Distances \ (nm) $", fontsize=25, labelpad=30)
-    ax.set_ylabel("$Count $", fontsize=25, labelpad=30)
+    ax.set_ylabel("$Density $", fontsize=25, labelpad=30)
     ax.tick_params(axis='x', labelsize=30)
     ax.tick_params(axis='y', labelsize=30)
     if not os.path.isdir(figures_dir):
@@ -165,21 +165,21 @@ def plot_trackpy_spot_detection(spots_dir, figures_dir):
     data.mass = data.mass / 1000  # Just for visualization purposes
     sns.set(font_scale=3)
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, constrained_layout=True, figsize=(30, 30))
-    ax1.set_ylabel("Count", labelpad=30)
+    ax1.set_ylabel("Density", labelpad=30)
     ax1.set_xlabel("mass (I · 10³)", labelpad=30)
-    ax2.set_ylabel("Count", labelpad=30)
+    ax2.set_ylabel("Density", labelpad=30)
     ax2.set_xlabel("size", labelpad=30)
-    ax3.set_ylabel("Count", labelpad=30)
+    ax3.set_ylabel("Density", labelpad=30)
     ax3.set_xlabel("signal", labelpad=30)
-    ax4.set_ylabel("Count", labelpad=30)
+    ax4.set_ylabel("Density", labelpad=30)
     ax4.set_xlabel("ecc", labelpad=30)
-    sns.histplot(data=data, x="mass", kde=True, ax=ax1, hue="channel")
+    sns.histplot(data=data, x="mass", kde=True, ax=ax1, hue="channel", stat="density")
     ax1.axvline(x=data.mass.mean(), color='red', ls='--', lw=2.5, alpha=0.3)
-    sns.histplot(data=data, x="size", kde=True, ax=ax2, hue="channel")
+    sns.histplot(data=data, x="size", kde=True, ax=ax2, hue="channel", stat="density")
     ax2.axvline(x=data["size"].mean(), color='red', ls='--', lw=2.5, alpha=0.3)
-    sns.histplot(data=data, x="signal", kde=True, ax=ax3, hue="channel")
+    sns.histplot(data=data, x="signal", kde=True, ax=ax3, hue="channel", stat="density")
     ax3.axvline(x=data.signal.mean(), color='red', ls='--', lw=2.5, alpha=0.3)
-    sns.histplot(data=data, x="ecc", kde=True, ax=ax4, hue="channel")
+    sns.histplot(data=data, x="ecc", kde=True, ax=ax4, hue="channel", stat="density")
     ax4.axvline(x=data.ecc.mean(), color='red', ls='--', lw=2.5, alpha=0.3)
     plt.savefig(figures_dir + "spot_detection/" + "spots_features.png")
     plt.clf()
@@ -192,14 +192,14 @@ def plot_trackpy_spot_detection(spots_dir, figures_dir):
     plt.clf()
 
     # 3D plot mass - ecc - signal
-    fig3 = px.scatter_3d(data, x='mass', y='ecc', z='signal',
-                         color='channel')
-    fig3.write_html(figures_dir + "spot_detection/" + "mass_ecc_signal.html")
-
-    # 3D plot mass - ecc - size
-    fig4 = px.scatter_3d(data, x='mass', y='ecc', z='size',
-                         color='channel')
-    fig4.write_html(figures_dir + "spot_detection/" + "mass_ecc_size.html")
+    # fig3 = px.scatter_3d(data, x='mass', y='ecc', z='signal',
+    #                      color='channel')
+    # fig3.write_html(figures_dir + "spot_detection/" + "mass_ecc_signal.html")
+    #
+    # # 3D plot mass - ecc - size
+    # fig4 = px.scatter_3d(data, x='mass', y='ecc', z='size',
+    #                      color='channel')
+    # fig4.write_html(figures_dir + "spot_detection/" + "mass_ecc_size.html")
 
 
 def spot_detection(images_dir, spots_dir, results_dir, figures_dir,
@@ -470,7 +470,7 @@ def global_warping(beads_dir, spots_dir, figures_dir, results_dir, pixel_size):
         (ref[:, 0] - warped_coords[:, 0]) ** 2 + (ref[:, 1] - warped_coords[:, 1]) ** 2) * pixel_size
     np.savetxt(results_dir + "distances_after_warping.csv", new_distances, delimiter=",")
     # PLOT BEFORE vs AFTER WARPING
-    fig, ax = plt.subplots(figsize=(25, 15))
+    fig, ax = plt.subplots(figsize=(25, 20))
     sns.set(font_scale=3)
     ax.set_title("Beads Distances AFTER Warping\n\n"
                  "mean before = {} nm; stdev before = {} nm\n"
@@ -479,10 +479,10 @@ def global_warping(beads_dir, spots_dir, figures_dir, results_dir, pixel_size):
                                                                      np.around(np.mean(new_distances), 2),
                                                                      np.around(np.std(new_distances)), 2),
                  fontweight="bold", size=25)
-    sns.histplot(data=original_distances, kde=True, color="sandybrown", ax=ax, fill=True)
-    sns.histplot(data=new_distances, kde=True, ax=ax, color="cornflowerblue", fill=True)
-    ax.set_xlabel("$Distances (nm) $", fontsize=45, labelpad=30)
-    ax.set_ylabel("$Count $", fontsize=45, labelpad=30)
+    sns.histplot(data=original_distances, kde=True, color="sandybrown", ax=ax, fill=True, stat="density")
+    sns.histplot(data=new_distances, kde=True, ax=ax, color="cornflowerblue", fill=True, stat="density")
+    ax.set_xlabel("$Distances (nm) $", fontsize=30, labelpad=30)
+    ax.set_ylabel("$Density $", fontsize=30, labelpad=30)
     ax.axvline(x=np.mean(original_distances), color='sandybrown', ls='--', lw=2.5, alpha=0.8)
     ax.axvline(x=np.mean(new_distances), color='cornflowerblue', ls='--', lw=2.5, alpha=0.8)
     plt.savefig(figures_dir + "spot_detection/distances_after_warping.png")
@@ -555,9 +555,11 @@ def local_warping(beads_dir, spots_dir, figures_dir, results_dir, pixel_size):
     sns.set(font_scale=1)
     sns.set_style("whitegrid", {'axes.grid': False})
     sns.despine()
-    sns.histplot(data=ddist(W2_coords, W1_coords, px_size=pixel_size), kde=True, color="sandybrown", ax=ax, fill=True,
+    sns.histplot(data=ddist(W2_coords, W1_coords, px_size=pixel_size), kde=True, color="sandybrown", ax=ax,
+                 fill=True,
                  stat="density", label="initial_distances")
-    sns.histplot(data=ddist(W2_coords, W1_warped_coords, px_size=pixel_size), kde=True, color="tomato", ax=ax, fill=True,
+    sns.histplot(data=ddist(W2_coords, W1_warped_coords, px_size=pixel_size), kde=True, color="tomato", ax=ax,
+                 fill=True,
                  stat="density", label="transformed")
     ax.set_xlabel("$d \ (nm)$")  # , fontsize=11, labelpad=30)
     ax.set_ylabel("$Density$")  # , fontsize=45, labelpad=30)

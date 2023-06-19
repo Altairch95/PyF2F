@@ -108,12 +108,12 @@ def segment_yeast(segment_dir, images_dir, scale_factor, rescale, verbose=False,
                 shutil.rmtree(output_mask_directory)
 
 
-def read_csv_2(file):
+def read_custom_segment_csv(file):
     """
     Function to read multiple csv (input data)
     """
     channel = file.split("/")[-1].split(".")[0].split("_")[3]
-    df = pd.read_csv(file, sep="\t")  # sep="\t"
+    df = pd.read_csv(file, sep="\t")
     if len(df) != 0:
         df.loc[:, "channel"] = channel
         return df
@@ -152,6 +152,7 @@ def clean_mother_daugther(segment_dir, img_num, contour_image, labels_image):
     daughter cells.
     Parameters
     ----------
+    segment_dir
     img_num: image number ("01", "02", ...)
     contour_image: ndimage with cells contours (contour is 1, background is 0)
     labels_image: ndimage with labeled cells (each cell has a unique label)
@@ -409,7 +410,7 @@ def main_segmentation(segment_dir, images_dir, spots_dir, results_dir, figures_d
     # Sort far-from-contour and/or not-isolated Spots
     # Check if detected spots
     if not os.path.exists(spots_dir) or len(os.listdir(spots_dir)) == 0:
-        sys.stderr.write('\nPICT-MODELLER-ERROR: Oh wow! You still trying to hack me!!\n'
+        sys.stderr.write('\nPyF2F-ERROR: Oh wow! You still trying to hack me!!\n'
                          'You did not run spot detection (option -spt), did you? If so, I could not find any spot :S\n'
                          'I can not proceed if I do not have info about your spots... '
                          'Please, first process your images. \n'
@@ -533,9 +534,9 @@ def main_segmentation(segment_dir, images_dir, spots_dir, results_dir, figures_d
                                                                total_selected))
     # MEASURE DISTANCE DISTRIBUTION AFTER GAUSSIAN
     # Load data ensuring that W1 & W2 are paired
-    df_W1 = pd.concat(map(read_csv_2, sorted(glob.glob(results_dir + "segmentation/detected_seg_*W1*"))),
+    df_W1 = pd.concat(map(read_custom_segment_csv, sorted(glob.glob(results_dir + "segmentation/detected_seg_*W1*"))),
                       ignore_index=True)
-    df_W2 = pd.concat(map(read_csv_2, sorted(glob.glob(results_dir + "segmentation/detected_seg_*W2*"))),
+    df_W2 = pd.concat(map(read_custom_segment_csv, sorted(glob.glob(results_dir + "segmentation/detected_seg_*W2*"))),
                       ignore_index=True)
     initial_distances = np.loadtxt(results_dir + "distances_after_warping.csv")
     distances_seg = calculate_distances(df_W1, df_W2, px_size)

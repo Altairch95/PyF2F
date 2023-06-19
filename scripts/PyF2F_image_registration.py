@@ -83,7 +83,7 @@ p.add_argument('-sd', action="store", dest="spot_diameter",
 
 p.add_argument('-pc', action="store", dest="percentile",
                type=float,
-               default=99.0,
+               default=99.8,
                required=False,
                help="Percentile. Spots which intensity falls above this pc are selected")
 

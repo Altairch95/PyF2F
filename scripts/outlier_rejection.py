@@ -78,7 +78,7 @@ def save_html_kde(path_to_save, channel_image, sub_df, img_num, channel_name):
 
 
 def plot_outlier_rejection(sel_distribution, c, mu, sigma, i_max, n, sh_scores, dataset_name, results_dir,
-                           figures_dir):
+                           figures_dir, bin_size):
     """
     Plot distance distributio BEFORE and AFTER outlier
     rejection
@@ -95,13 +95,15 @@ def plot_outlier_rejection(sel_distribution, c, mu, sigma, i_max, n, sh_scores, 
     :param dataset_name
     :param results_dir
     :param figures_dir
+    :param bin_size: size of bins for plots
 
     """
+    xlim = 180
     initial_distances = np.loadtxt(results_dir + "distances_after_warping.csv")
     np.savetxt(results_dir + "final_distances.csv", sel_distribution, delimiter="\t")
 
     # PLOT NEW DISTANCE DISTRIBUTION
-    fig, ax = plt.subplots(figsize=(25, 15))
+    fig, ax = plt.subplots(figsize=(25, 20))
     sns.set(font_scale=3)
     sns.set_style("whitegrid", {'axes.grid': False})
     sns.despine()
@@ -115,16 +117,18 @@ def plot_outlier_rejection(sel_distribution, c, mu, sigma, i_max, n, sh_scores, 
                                     np.around(np.std(sel_distribution), 2),
                                     len(sel_distribution)),
                  fontweight="bold", size=25)
-    sns.histplot(data=initial_distances, kde=False, color="tab:grey", ax=ax, fill=True, stat="density")
-    sns.histplot(data=sel_distribution, kde=False, ax=ax, color="red", fill=True, stat="density")
-    ax.set_xlabel("Distances (nm) ", fontsize=45, labelpad=30)
-    ax.set_ylabel("Density ", fontsize=45, labelpad=30)
+    sns.histplot(data=initial_distances, kde=False, color="tab:grey", binwidth=bin_size, ax=ax, fill=True,
+                 stat="density")
+    sns.histplot(data=sel_distribution, kde=False, ax=ax, color="mediumblue", binwidth=bin_size, fill=True,
+                 stat="density")
+    ax.set_xlabel("Distances (nm) ", fontsize=30, labelpad=30)
+    ax.set_ylabel("Density ", fontsize=30, labelpad=30)
     ax.tick_params(axis='x', labelsize=30)
     ax.tick_params(axis='y', labelsize=30)
-    ax.set_xlim(0, max(initial_distances))
+    ax.set_xlim(0, xlim)
     # ax.axvline(x=np.mean(initial_distances), color='sandybrown', ls='--', lw=2.5, alpha=0.8)
     # ax.axvline(x=np.mean(sel_distribution), color='cornflowerblue', ls='--', lw=2.5, alpha=0.8)
-    ax.plot(c[0], pdf(c[0], mu[i_max][0], sigma[i_max][0]), color='black', linewidth=6,
+    ax.plot(c[0], pdf(c[0], mu[i_max][0], sigma[i_max][0]), color='black', linewidth=8,
             label='$\mu=$' + str(round(mu[i_max][0], 2)) + '$\pm$' + str(round(mu[i_max][1], 2))
                   + 'nm, $\sigma=$' +
                   str(round(sigma[i_max][0], 2)) + '$\pm$' + str(round(sigma[i_max][1], 2)) + 'nm'
@@ -137,8 +141,8 @@ def plot_outlier_rejection(sel_distribution, c, mu, sigma, i_max, n, sh_scores, 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(40, 15))
     sns.set_style("whitegrid", {'axes.grid': False})
     sns.despine()
-    sns.histplot(x=sel_distribution, kde=False, ax=ax1, stat="density", legend=True, color='red',
-                 binwidth=10, edgecolor='black')
+    sns.histplot(x=sel_distribution, kde=False, ax=ax1, stat="density", legend=True, color='mediumblue',
+                 binwidth=bin_size, edgecolor='black')
     ax1.plot(c[0], pdf(c[0], mu[i_max][0], sigma[i_max][0]), color='black', linewidth=8,
              label=
              '$\mu=$' + str(round(mu[i_max][0], 2)) + '$\pm$' + str(round(mu[i_max][1], 2))
@@ -148,7 +152,7 @@ def plot_outlier_rejection(sel_distribution, c, mu, sigma, i_max, n, sh_scores, 
     # ax1.axvline(x=mu[i_max][0], color='black', ls='--', lw=3, alpha=0.3)
     ax1.set_xlabel('distance (nm)', fontsize=30)
     ax1.set_ylabel('Density', fontsize=30)
-    ax1.set_xlim(0, max(sel_distribution))
+    ax1.set_xlim(0, max(sel_distribution))  # max(sel_distribution)
     legend = ax1.legend(loc='upper right', shadow=True, fontsize=30)
     legend.get_frame().set_facecolor('C0')
     ax1.tick_params(axis='x', labelsize=25)
@@ -185,7 +189,7 @@ def plot_outlier_rejection(sel_distribution, c, mu, sigma, i_max, n, sh_scores, 
 
 
 def run_outlier_rejection(data, distances_list, dataset_name, results_dir, figures_dir, images_dir,
-                          reject_lower, cutoff, mu_ini=None, sigma_ini=None, dirty=False):
+                          reject_lower, cutoff, bin_size, mu_ini=None, sigma_ini=None, dirty=False):
     """
     Main function to run outlier rejection
     Parameters
@@ -202,6 +206,7 @@ def run_outlier_rejection(data, distances_list, dataset_name, results_dir, figur
     (if you suspect your MLE results are fishy).
     :param cutoff: seek outliers in the 1 - cutoff tail of your initial distribution
     :param dirty: generate HTML files for each image with selected spots
+    :param bin_size: size of bins for plots
 
     """
     # INPUT PARAMETERS
@@ -257,10 +262,11 @@ def run_outlier_rejection(data, distances_list, dataset_name, results_dir, figur
 
     # Plot results
     plot_outlier_rejection(sel_distribution, cumulative_density, mu, sigma, i_max, n, sh_scores, dataset_name,
-                           results_dir, figures_dir)
+                           results_dir, figures_dir, bin_size)
 
 
-def outlier_rejection(results_dir, figures_dir, images_dir, mu_ini, sigma_ini, reject_lower, cutoff, dirty=False):
+def outlier_rejection(results_dir, figures_dir, images_dir, mu_ini, sigma_ini, reject_lower, cutoff,
+                      bin_size, dirty=False):
     """
     Method to run outlier rejection of the distances'
     distribution, based on maximizing the likelihood
@@ -278,6 +284,7 @@ def outlier_rejection(results_dir, figures_dir, images_dir, mu_ini, sigma_ini, r
     (if you suspect your MLE results are fishy).
     :param cutoff: seek outliers in the 1 - cutoff tail of your initial distribution
     :param dirty: generate HTML files for each image with selected spots
+    :param bin_size: size of bins for plots
 
     """
     print("\n\n####################################\n"
@@ -299,7 +306,8 @@ def outlier_rejection(results_dir, figures_dir, images_dir, mu_ini, sigma_ini, r
     dataset_name = figures_dir.split("/")[-4]
     # RUN OUTLIER REJECTION
     run_outlier_rejection(data, distances, dataset_name, results_dir, figures_dir, images_dir,
-                          reject_lower=reject_lower, mu_ini=mu_ini, sigma_ini=sigma_ini, cutoff=cutoff, dirty=dirty)
+                          reject_lower=reject_lower, mu_ini=mu_ini, sigma_ini=sigma_ini, cutoff=cutoff, dirty=dirty,
+                          bin_size=bin_size)
 
 
 if __name__ == "__main__":

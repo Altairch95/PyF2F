@@ -141,6 +141,13 @@ parser.add_argument('--sigma_ini',
                     default=None,
                     help="Initial guess for sigma search in the MLE")
 
+parser.add_argument('--bin_size',
+                    dest='bin_size',
+                    action="store",
+                    type=float,
+                    default=None,
+                    help="Bin size for distance distribution plots")
+
 parser.add_argument('--dirty',
                     dest='dirty',
                     action="store_true",
@@ -263,6 +270,7 @@ mle_cutoff = parsero.mle_cutoff                     # Perform MLE with by bootst
 reject_lower = parsero.reject_lower                 # Reject max-scored estimates under this threshold
 mu_ini = parsero.mu_ini                             # Initiate the MLE with this initial mu.
 sigma_ini = parsero.sigma_ini                       # Initiate the MLE with this initial sigma.
+bin_size = parsero.bin_size                         # Bin size for distance distribution plots
 
 # YEAST SPOTTER PARAMS FOR CELL SEGMENTATION
 rescale = False                                     # rescale the input images to reduce segmentation time
@@ -354,8 +362,8 @@ if warping_transformation:
         local_warping(beads_dir, spots_dir, figures_dir, results_dir, pixel_size=px_size)
     if global_transformation:
         global_warping(beads_dir, spots_dir, figures_dir, results_dir, pixel_size=px_size)
-    if dirty:
-        plot_links(images_dir + "imageMD*.tif", spots_dir, figures_dir + "spot_detection/")
+        if dirty:
+            plot_links(images_dir + "imageMD*.tif", spots_dir, figures_dir + "spot_detection/")
 
 # ===========================
 # 3. SELECTION: SEGMENTATION
@@ -395,7 +403,7 @@ if mle:
     ############################
     outlier_rejection(results_dir, figures_dir, images_dir,
                       mu_ini=mu_ini, sigma_ini=sigma_ini, reject_lower=reject_lower,
-                      cutoff=mle_cutoff, dirty=dirty)
+                      cutoff=mle_cutoff, dirty=dirty, bin_size=bin_size)
 
 # How much time did it take?
 end = time.time()
